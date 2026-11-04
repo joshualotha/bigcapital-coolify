@@ -146,6 +146,7 @@ services:
 
   database_migration:
     container_name: bigcapital-database-migration
+    restart: "no"
     build:
       context: ./
       dockerfile: docker/migration/Dockerfile
