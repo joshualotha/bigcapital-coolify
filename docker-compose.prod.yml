@@ -28,13 +28,15 @@ services:
     image: bigcapitalhq/server:latest
     expose:
       - '3000'
-    links:
-      - mysql
-      - redis
     depends_on:
-      - mysql
-      - redis
-      - garage
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      garage:
+        condition: service_started
+      database_migration:
+        condition: service_completed_successfully
     restart: on-failure
     networks:
       - bigcapital_network
@@ -157,7 +159,8 @@ services:
       # Tenants databases
       - TENANT_DB_NAME_PERFIX=${TENANT_DB_NAME_PERFIX}
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - bigcapital_network
 
@@ -175,6 +178,12 @@ services:
       - mysql:/var/lib/mysql
     expose:
       - '3306'
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - bigcapital_network
 
