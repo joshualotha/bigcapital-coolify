@@ -1,16 +1,14 @@
 # This is a production version of the Bigcapital docker-compose.yml file.
 
-version: '3.3'
-
 services:
   proxy:
     image: envoyproxy/envoy:v1.30-latest
     depends_on:
       - server
       - webapp
-    ports:
-      - '${PUBLIC_PROXY_PORT:-80}:80'
-      - '${PUBLIC_PROXY_SSL_PORT:-443}:443'
+    # Coolify terminates public TLS and routes the configured hostname here.
+    expose:
+      - '80'
     tty: true
     volumes:
       - ./docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
@@ -22,8 +20,6 @@ services:
     container_name: bigcapital-webapp
     image: bigcapitalhq/webapp:latest
     restart: on-failure
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - bigcapital_network
 
@@ -40,8 +36,6 @@ services:
       - redis
       - garage
     restart: on-failure
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - bigcapital_network
     environment:
@@ -233,19 +227,6 @@ services:
       - '8123'
     volumes:
       - clickhouse:/var/lib/clickhouse
-    networks:
-      - bigcapital_network
-
-  # Auto-updates the containers labelled "com.centurylinklabs.watchtower.enable=true"
-  # (webapp and server) by polling the registry for newer :latest images.
-  # Everything else (mysql, redis, gotenberg, garage, clickhouse, proxy) is untouched.
-  auto-update:
-    container_name: bigcapital-auto-update
-    image: containrrr/watchtower:1.7.1
-    restart: on-failure
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command: --label-enable --cleanup --interval ${AUTO_UPDATE_INTERVAL:-3600}
     networks:
       - bigcapital_network
 
