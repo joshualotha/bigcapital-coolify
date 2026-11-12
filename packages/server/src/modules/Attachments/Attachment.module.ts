@@ -84,12 +84,6 @@ const models = [
             }
             cb(null, `${organizationId}/${randomUUID()}`);
           },
-          acl: function (req, file, cb) {
-            // Conditionally set file to public or private based on isPublic flag
-            const aclValue = true ? 'public-read' : 'private';
-            // Set ACL based on the isPublic flag
-            cb(null, aclValue);
-          },
         }),
       }),
     },
